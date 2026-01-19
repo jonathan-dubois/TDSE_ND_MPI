@@ -79,8 +79,9 @@ void Initialize_meshgrid(const Parameters *P, MeshGrid *grid, const ptrdiff_t *l
         ptrdiff_t N_global=P->Nr_global[j];
         double L=dr*N_global;
         double dp=2.*M_PI/L;
+        ptrdiff_t start_offset=(j==0)?local_start[0]:0;
         for (i=0;i<N_local;i++){ // Grids along the j-th direction
-            ptrdiff_t global_i=i+local_start[j]; // Define the global index
+            ptrdiff_t global_i=i+start_offset; // Define the global index
             grid->r[grid->Nc[j]+i]=-.5*L+global_i*dr; // Position coordinate
             if (global_i<N_global/2){grid->pr[grid->Nc[j]+i]=global_i*dp;} // Momentum coordinate
             else{grid->pr[grid->Nc[j]+i]=(global_i-N_global)*dp;}

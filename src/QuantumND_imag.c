@@ -264,7 +264,8 @@ int main(int argc, char* argv[]){
 
 void Gram_Schmidt_orthonormalization(const int N, double complex **Psi, const MeshGrid *grid, MPI_Comm comm){ // Gram-Schmidt orthonormalization procedure for the N's state in Psi. It is therefore computed with respect to all states smaller than N. It gives the Nth wavefunction normalized and orthonormal with respect to the others already computed. The code assumes that the states 1,...,N-1 are already normalized and orthogonal with each other.
     ptrdiff_t i;
-    int j;
+    int j,rank;
+    MPI_Comm_rank(comm,&rank); // Get rank for conditional printing
     
     /* Memory allocation for the Nth vector & initialization */
     double complex *v=NULL;
@@ -293,8 +294,12 @@ void Gram_Schmidt_orthonormalization(const int N, double complex **Psi, const Me
     for (i=0;i<grid->dim_HS;i++){norm_local+=cabs(v[i])*cabs(v[i])*grid->dNr;} // Local norm calculation
     MPI_Allreduce(&norm_local,&norm_global,1,MPI_DOUBLE,MPI_SUM,comm); // Global summation
     
-    if (norm_global<tol) { // Use a small tolerance
-        fprintf(stderr,"ERROR: Wavefunction norm decayed to zero during Gram-Schmidt.\n");
+    if (norm_global<tol){ // Use a small tolerance
+        if (rank==0){
+            fprintf(stderr,"ERROR: Wavefunction norm decayed to zero during Gram-Schmidt for state %d.\n",N);
+            fprintf(stderr,"DEBUG: norm_global = %e (tolerance = %e)\n",norm_global,tol);
+        }
+        free(v); // Clean up before aborting
         MPI_Abort(comm,1);
     }
     
