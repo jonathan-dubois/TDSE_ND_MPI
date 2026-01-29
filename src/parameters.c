@@ -323,7 +323,7 @@ void Initialize_parameters_real(const char* filename, Parameters* P, Parameters*
             printf("WARNING: The number of observables is not specified\n");
             printf("Default value: N_OBSERVABLES=0\n");
         }
-        if (!nobservables_found){
+        if (!nmodes_found){
             printf("WARNING: The number of field modes is not specified\n");
             printf("Default value: N_MODES=1\n");
         }
