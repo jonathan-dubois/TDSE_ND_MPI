@@ -506,6 +506,11 @@ void Initialize_parameters_real(const char* filename, Parameters* P, Parameters*
                             perror("An ith state is undetermined");
                             local_error=1;
                         }
+                        if (P->j_states[j]<1){
+                            printf("\nJ_STATES indices must be >=1 (1-indexed); got %d\n",P->j_states[j]);
+                            perror("Error with initial eigenstate");
+                            local_error=1;
+                        }
                         if (P->j_states[j]>P_imag->N_states){
                             printf("\nAn initial eigenstate is not computed in the imaginary time propagation\n");
                             perror("Error with initial eigenstate");
@@ -680,6 +685,10 @@ void Initialize_parameters_real(const char* filename, Parameters* P, Parameters*
                         perror("One field gauge is undetermined");
                         local_error=1;
                     }
+                    else if (strcmp(F->gauge,"length")!=0 && strcmp(F->gauge,"velocity")!=0){
+                        fprintf(stderr,"ERROR: Unknown GAUGE '%s'. Must be 'length' or 'velocity'.\n",F->gauge);
+                        local_error=1;
+                    }
                 }
                 else if (strcmp(key,"ENVELOPE")==0){
                     if (Expected_arguments(file,"ENVELOPE",F->N_modes,KnownKeys_real,comm)!=0){MPI_Abort(comm,1);}
@@ -801,6 +810,10 @@ void Initialize_parameters_real(const char* filename, Parameters* P, Parameters*
     /** Normalize the coefficients of the initial state (assuming the eigenstates are orthonormal) **/
     double norm2=0.;
     for (j=0;j<P->N_states;j++){norm2+=cabs(P->coeffs_states[j])*cabs(P->coeffs_states[j]);}
+    if (norm2<=0.){
+        if (rank==0){fprintf(stderr,"ERROR: COEFFS_STATES are all zero (or invalid); cannot normalize the initial state.\n");}
+        MPI_Abort(comm,1);
+    }
     for (j=0;j<P->N_states;j++){P->coeffs_states[j]/=sqrt(norm2);}
     
     /** Laser field parameters **/
@@ -1055,25 +1068,16 @@ void Allocate_dim_arrays(Parameters* P, int dim, MPI_Comm comm){
 }
 
 /* Read complex numbers from a string */
-double complex parse_complex(const char* str){ // Parses a string like "0.5+0.5j", "1.0", "-0.3j", "2-3j", etc.
-    double re=0.,im=0.;
-    char* plus_ptr=strchr(str,'+');
-    char* minus_ptr=strrchr(str,'-'); // last minus (might be inside exponent)
-
-    if (plus_ptr && strchr(str,'j')){sscanf(str,"%lf+%lfj",&re,&im);} // "a+bj"
-    else if (minus_ptr && minus_ptr!=str && strchr(str,'j')){ // "a-bj"
-        sscanf(str,"%lf-%lfj",&re,&im);
-        im=-im;
-    }
-    else if (strchr(str,'j')){ // "bj"
-        sscanf(str,"%lfj",&im);
-        re=0.;
-    }
-    else { // "a"
-        sscanf(str,"%lf",&re);
-        im=0.;
-    }
-    return re+im*I;
+double complex parse_complex(const char* str){ // Parses "0.5+0.5j", "1.0", "-0.3j", "2-3j", "1e+3-2j", etc.
+    char *end1, *end2;
+    double first = strtod(str, &end1); // Parse the first number (handles signs and exponents correctly)
+    if (*end1=='j' || *end1=='J' || *end1=='i' || *end1=='I'){return 0.+first*I;} // Pure imaginary, e.g. "-0.3j"
+    if (*end1=='\0'){return first+0.*I;} // Pure real, e.g. "1.0"
+    
+    /* Otherwise end1 points at the '+' or '-' that starts the imaginary part */
+    double second=strtod(end1, &end2); // strtod itself consumes the leading sign correctly
+    if (*end2!='j' && *end2!='J' && *end2!='i' && *end2!='I'){fprintf(stderr,"WARNING: could not parse complex coefficient '%s' (unexpected format).\n",str);}
+    return first+second*I;
 }
 
 /* Check if there is the right amount of parameters in the raws of params.imag or params.real */
