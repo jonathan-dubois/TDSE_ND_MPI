@@ -154,6 +154,7 @@ void Initialize_meshgrid(const Parameters *P, MeshGrid *grid, const ptrdiff_t *l
     }
     free(ri);
     free(pi);
+    free(index);
         
     /* Fourier transforms between position and momentum representations */
     fftw_init_threads();
