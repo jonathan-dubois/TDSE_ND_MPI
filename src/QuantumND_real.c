@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
         
         /** Write down the first line of observables **/
         fprintf(file_obs,"time"); // Write the time
-        for (j=0;j<Obs.total_count;j++){for (k=0;k<Obs.dimensions[j];k++){if (Obs.dimensions[k]!=0){fprintf(file_obs,"\t%s",Obs.names[j]);}}} // Write the other observables
+        for (j=0;j<Obs.total_count;j++){for (k=0;k<Obs.dimensions[j];k++){fprintf(file_obs,"\t%s",Obs.names[j]);}} // Write the other observables
         fprintf(file_obs,"\n"); // Write the time
     }
     
@@ -170,6 +170,7 @@ int main(int argc, char* argv[]){
             /** Calculation of the desired observables & writing **/
             dt_cum+=P.dt;
             if (dt_cum>=P.dt_save){
+                dt_cum=0.; // Update the cumulative time
                 Field_vectors(&P,&F,P.time[itime],alpha,alpha_buffer,comm); // Compute the vector potential at time t
                 Calculation_global_observables(Psi,P.dim,&grid,&Obs,alpha,comm); // Compute the observables with At=alpha (velocity gauge)
                 Write_observables(file_obs,P.time[itime],&Obs,comm);
@@ -196,6 +197,8 @@ int main(int argc, char* argv[]){
             /** Calculation of the desired observables & writing **/
             dt_cum+=P.dt;
             if (dt_cum>=P.dt_save){
+                dt_cum=0.; // Update the cumulative time
+                
                 /** Wavefunction to the r-representation **/
                 for(i=0;i<grid.dim_HS;i++){grid.in[i]=Psi[i];}
                 fftw_execute(grid.plan_backward);
@@ -226,6 +229,10 @@ int main(int argc, char* argv[]){
         for(i=0;i<grid.dim_HS;i++){grid.in[i]=Psi[i];}
         fftw_execute(grid.plan_backward);
         for(i=0;i<grid.dim_HS;i++){Psi[i]=grid.out[i]*sqrt(grid.fft_scaling);} // Psi in r-representation & rescaled
+    }
+    else{
+        if (rank==0){fprintf(stderr,"ERROR: Unknown GAUGE '%s'. Must be 'length' or 'velocity'.\n",F.gauge);}
+        MPI_Abort(comm,1);
     }
     
     clock_gettime(CLOCK_MONOTONIC,&end_real);
