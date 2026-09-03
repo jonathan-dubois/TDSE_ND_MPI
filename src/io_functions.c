@@ -490,6 +490,8 @@ void Read_wavefunction_MPI(const Parameters *P, const Parameters *P_imag, const 
     }
     Finalize_observables(&Obs_Lz);
     
+    if (rank==0 && sqrt(norm_global)<0.99){fprintf(stderr,"WARNING: initial-state norm is %16.15f (<1) — the real-time grid may be cropping part of the imaginary-time eigenstate. Consider a larger NR if this is unintended.\n",sqrt(norm_global));} // Check it the wavefunction is not too cropped
+    
     /* Cleanup */
     fftw_free(temp_psi_local);
     free(alpha);
