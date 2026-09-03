@@ -3,7 +3,7 @@
 # =======================================================
 CC = mpicc
 
-CFLAGS = -Wall -O3 -march=native -ffast-math -fopenmp -c # -c flag means "compile only"
+CFLAGS = -Wall -O3 -march=native -std=gnu11 -ffast-math -fopenmp -c # -c flag means "compile only"
 LDFLAGS = -fopenmp -lfftw3_mpi -lfftw3 -lfftw3_threads -lpthread -lm
 
 MPI_INC = -I/opt/homebrew/opt/fftw/include
