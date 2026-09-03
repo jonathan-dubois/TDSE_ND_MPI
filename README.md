@@ -24,7 +24,6 @@ This project benefited from collaborative development and debugging sessions wit
 
 QuantumND is a highly efficient, parallel C program designed to solve the time-dependent Schrödinger equation (TDSE) for a quantum system in N spatial dimensions (ND) subject to external fields (e.g., perturbative electric fields, strong laser pulses).
 The code leverages MPI (Message Passing Interface) for distributing the computational grid and FFTW (Fastest Fourier Transform in the West) for efficient propagation in both position and momentum spaces. It also utilizes shared-memory parallelism via OpenMP for optimizing local computations.
-This project was developed in collaboration with the Google Gemini 2.5 Flash model.
 
 ## Features ============================================
 
