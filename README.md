@@ -18,7 +18,7 @@ Sorbonne Université
 E-mail: jonathan.dubois@cnrs.fr
 
 This project is open-source. Feel free to submit pull requests or open issues on GitHub.
-This project benefited from collaborative development and debugging sessions with Google Gemini 2.5 Flash.
+This project benefited from collaborative development and debugging sessions with Google Gemini 2.5 Flash, and from a code review and build-debugging session with Claude (Anthropic).
 
 ## Project Overview ====================================
 
